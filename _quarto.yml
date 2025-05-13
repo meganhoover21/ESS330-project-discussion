@@ -4,7 +4,7 @@ project:
   #when rendering, comment this out. when hosting to webpage, then run it
 
 manuscript:
-  article: index.qmd
+  article: karenia-brevis.qmd
 
 format:
   html:
