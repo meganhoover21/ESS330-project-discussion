@@ -1,8 +1,59 @@
 ---
-title: "karenia-brevis"
-format: html
+title: "ESS330-results-discussion"
+authors:
+  - name: Megan Hoover
+    affiliation: Colorado State University
+    roles: [writing]
+    corresponding: true
+  - name: Lilly Zapalac
+    affiliation: Colorado State University
+    roles: [writing]
+  - name: Tessa
+    affiliation: Colorado State University
+    roles: [writing]
+    
+format: 
+  html:
+    self-contained: true
+    
+knitr:
+  opts_chunk: 
+    echo: true
+    collapse: true
+    comment: "#>"
+    
+bibliography: references.bib
+csl: apa.csl
 ---
 
+
+## Karenia Brevis Harmful Algal Blooms
+
+
+
+# Abstract
+
+Harmful red tide events along the Florida coast have been occurring more frequently and are lasting for longer periods of time than they used to. Karenia Brevis is commonly known as the red tide and is a type of algae that is fed by various organic nutrients that occur in upwelling zones, optimal water conditions, and are very complex to predict. Here, we try to understand what conditions allow Karenia brevis to thrive and what may be causing the increased outbreaks. Using an observation dataset from Florida Fish and Wildlife Conservation, we looked at correlations between salinity (ppt), water temperature (°C), and cell counts (per L) using the linear regression model and GAM. Our graphs show that salinity and water temperature have a significant role in higher cell counts, the algae cells are higher in a salinity of 30-35 and a temperature of 22-30 °C.  Our model statistics revealed that predicting Karenia Brevis with just salinity and water temperature is not enough to make future predictions; other variables, such as nutrients, need to be accounted for. Cell counts have been increasing since the beginning of our dataset in 1954 and understanding why can help to make needed changes to decrease the amount of red tide events along the coast.  
+
+
+
+# Introduction
+
+
+
+# Data Overview 
+
+The data we used to better understand the red tide causing blooms, was provided by NOAA [see @ noaa_2014]. The .csv file covered sites in Florida, Texas, and Alabama. All of the sites we used for this study were from Pinellas County, Fl to Lee County, Fl or from latitude and longitudes of 26.25’49 N, –82.08’50 W and 27.54’16 N, –82.51’40 W. We chose this region due to a higher number of recorded blooms in comparison to other areas. The list of variables in the data set were location columns that detailed the name of the water body that the Karenia Brevis algal are found and which city they’re found off. There’s also a column for latitude, longitude, date, time of the extraction, depth of water measures, ranking of algal cells per liter, salinity of the water in parts per trillion, water temperature measured in degrees Celsius, and the object id where the sites are being tested at. Even though there’s a lot of variables, there’s a lot of missing data for some salinity and water temperature.
+
+
+# Methods
+
+First we looked at the data and cleaned it to be usable. We read in the data to R Studio and then created a new data frame by filtering sites from latitude and longitudes of 26.25’49 N, –82.08’50 W and 27.54’16 N, –82.51’40 W. We selected relevant columns of STATE_ID, DESCRIPTION, LATITUDE, LONGITUDE, SAMPLE_DATE, SAMPLE_DEPTH,CELLCOUNT, SALINITY, and WATER_TEMP. To make the sure the data made sense, we removed NA values from the whole data frame. The data set had many observations where there wasn't cell counts observed, because we wanted to view the relationship between the sites that had high counts, we filtered the cell count column to only show rows where the count was greater than 0. 
+
+After cleaning the data we tested relationships using vis_cor, scatter plots,and GAM and Random Forest models. Using Vis_cor we made a visual pixel graph to show if there was any correlation between the variables. We created several scatter plots to see if there were any relationships between water temperature, salinity, and cell count, and the date. The relationships in the graph were non-linear, but showed trends from dates listed in the data. We tested the data on a GAM model to see how good it was at predicting the future cell counts. The GAM model used the day of the year (to check a seasonal trend), and cell count by interaction between salinity and water temp to predict future trends. A Random Forest model was also tested to predict cell count from the salinity, water temperature, and day of the year.
+
+
+Load Libraries:
 ```{r}
 #setup, include=FALSE
 knitr::opts_chunk$set(echo = TRUE)
@@ -18,7 +69,8 @@ library(mgcv)
 library(tibble)
 library(randomForest)
 ```
-Load data
+
+Load data:
 ```{r}
 karenia_brevis<-read_csv("C:/Users/samho/Desktop/ESS330/github/ESS330-results-discussion/habsos_20220225.csv")
 
@@ -43,6 +95,10 @@ filtered_karenia <- filtered_karenia %>%
     WATER_TEMP,
   )
 
+
+#show structure of dataset and na
+vis<-vis_dat(filtered_karenia)
+print(vis)
 
 #change data frame to tibble
 filtered_karenia <- as_tibble(filtered_karenia)
@@ -85,7 +141,7 @@ filtered_karenia1 %>%
 
 
 ```
-There's a lot of missing dating in the temperature, wind direction, wind direction unit, wind speed, and salinity columns. This is because the dataset is reporting on daily data. This problem can be fixed by taking averages for each month in the data.
+
 
 Data Visualizations:
 ```{r}
@@ -102,6 +158,7 @@ print(plot)
 
 ggsave("salinity-cellcount.png", plot = plot, width = 6, height = 4, dpi = 300)
 
+
 #scatter plot of the cell counts and salinity. Shows relationship!
  salinity_cellcount2<- filtered_karenia1 %>%
   ggplot(aes(x = SALINITY, y = CELLCOUNT, color= , alpha= .05)) +
@@ -110,6 +167,8 @@ ggsave("salinity-cellcount.png", plot = plot, width = 6, height = 4, dpi = 300)
 subtitle = "Cell count measured in cells/L, salinity measured in part per thousand/L") 
  
  ggsave("salinity-cellcount2.png", plot = salinity_cellcount2, width = 6, height = 4, dpi = 300)
+ 
+ print(salinity_cellcount2)
  
  #graph of water temp and cell count relationship. There's one!
 watertemp_cellcount<- filtered_karenia1 %>%
@@ -120,6 +179,8 @@ subtitle = "Cell count measured in cells/L, water temperature measured in celsiu
 
 ggsave("temp_cell.png", plot = watertemp_cellcount, width = 6, height = 4, dpi = 300)
 
+print(watertemp_cellcount)
+
 #cell count and date
 date_cellcount <-filtered_karenia1 %>%
   ggplot(aes(x = SAMPLE_DATE, y = CELLCOUNT, color= , alpha= .05)) +
@@ -129,6 +190,8 @@ subtitle = "Cell count measured in cells/L")
 
 
 ggsave("date_cell.png", plot = date_cellcount, width = 6, height = 4, dpi = 300)
+
+print(date_cellcount)
  
 
 salinity_temp<- filtered_karenia1 %>%
@@ -138,11 +201,13 @@ salinity_temp<- filtered_karenia1 %>%
 subtitle = "Water temperature in C, salinity in parts per thousand/L") 
  
 ggsave("salinity_temp.png", plot = salinity_temp, width = 6, height = 4, dpi = 300)
+
+print(salinity_temp)
 ```
 
 
 
-Statistical Tests:
+Statistical Test: GAM Model
 ```{r}
 
 #Convert SAMPLE_DATE to numeric day of year (1–365) for seasonal trend
@@ -155,16 +220,12 @@ gam_model <- gam(CELLCOUNT ~
                    te(SALINITY, WATER_TEMP) +  # interaction term
                    s(DAY_OF_YEAR, bs = "cc"),  # cyclic seasonal effect
                  family = quasipoisson(link = "log"),  # use for overdispersed count data
-                 data = filtered_karenia_days
+                 data = filtered_karenia_days,
                  method = "REML")
 
 # Fit a GAM model with non-linear smooths for SALINITY and WATER_TEMP
 # and a time effect to account for seasonal or time-based trends
 summary(gam_model)
-
-
-
-
 
 filtered_karenia2<- filtered_karenia1 %>%
   mutate(SAMPLE_DATE = dmy_hms(SAMPLE_DATE),  # adjust to your format if needed
@@ -183,7 +244,7 @@ plot(gam_model)
 
 ggsave("gam_model.png", plot = gam, width = 6, height = 4, dpi = 300)
 ```
-
+Statistical test: Random Forest
 ```{r}
 #Now, let's fit the Random Forest model to predict CELLCOUNT from the other variables.
 # Fit a random forest model to predict CELLCOUNT
@@ -196,6 +257,11 @@ rf_model <- randomForest(CELLCOUNT ~ SALINITY + WATER_TEMP + DAY_OF_YEAR,
 print(rf_model)
 ```
 
+# Results
+
+The data visuals showing the relationship between water temperature and salinity to determine cell count are non-linear, and had some significance. The GAM model also confirms that with a p-value of < 2e-16 for both, indicating that the intercept is highly significant. The GAM model using day of the year to determine cell count was also significant with a p-value of less than .05. Although these all turned out to be significant in determining cell count, the r^2 value indicated that the model only explained 0.74% of the variance in cell count, adjusted for the number of predictors. This is quite low, meaning other factors not included in the model may influence cell count significantly. The model was only able to explain about 9% of the variability in cell count. Again, this is relatively low, suggesting a lot of unexplained variation. The Random forest model was an even worst fit, with only .25% of the variation explained, using salinity, water temperature, and day of the year as predictors. Both models weren't a good fit to use a predictions, there wasn't enough data variables to accurately describe the complexity of the Karenia Brevis blooms.
+
+Based on the data visuals from our filtered data, we can see there is a trend 
 
 using the Gam Model- This means you're modeling CELLCOUNT using:
 

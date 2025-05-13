@@ -340,7 +340,7 @@ FL_rm <- FL %>%
     WIND_SPEED_mph = na.omit(WIND_SPEED_mph)
   )
 
-gam_model_multiplication <- gam(cells_per_l ~ SALINITY_ppt * Water_temp_c * WIND_SPEED_mph, data= )
+gam_model_multiplication <- gam(cells_per_l ~ SALINITY_ppt * Water_temp_c * WIND_SPEED_mph, data= FL_rm)
 
 summary(gam_model_multiplication)
 plot(gam_model_multiplication)
