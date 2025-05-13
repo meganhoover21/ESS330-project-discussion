@@ -38,6 +38,8 @@ library(lubridate)
 library(outliers)
 library(patchwork)
 library(mgcv)
+library(tibble)
+library(randomForest)
 ```
 
 
@@ -62,6 +64,11 @@ First we'll look at the data and clean it to be usable. There are some columns t
 #Exploring Your Data
 
 The data was taken from NOAA. Columns consist of locations of the water samples taken, latitude, longitude, date for each day of the month and year, time of the extraction, depth of water measures, ranking of algal cells per liter, salinity of the water in parts per trillion, water temperature measured in degrees Celsius, and the object id where the sites are being tested at.The data for Texas wasn't able to be used, because it had very little data that didn't match other measurement parameters used in the Florida sample sites. The data for Florida is sufficient to use for analyzing any trends. There’s a lot of missing data for salinity levels, so a monthly average might have to be used for each month. There's also some years where there were less available data, so we chose years where there was enough data for each month. We deleted the Texas data in the excel worksheet, sorted and organized the samples by oldest to newest date. We’ll have to make an average per station, per month in our future graphs, but for now we have a general overview of the data.
+```{r}
+
+```
+
+
 
 ```{r}
 #read in the csv file. Already sorted to contain just 2009,2012, and 2022
@@ -317,12 +324,26 @@ print(anova22)
 The same results show for Florida's 2022 data, with the p- values in the multiple regregression model being insignificant (more than .05), with salinity being slightly significant at .07. 5,999,821: This is a much larger standard deviation of residuals than in 2012 (~159k), suggesting the overall variation in cell counts is way higher in 2022 — or that the model isn’t capturing the variation well.
 
 
-Checking GAM model:
+Checking GAM model:A GAM plot shows how a predictor (e.g. time, temperature, elevation) influences the response.
 ```{r}
 gam_model <- gam(cells_per_l ~ s(SALINITY_ppt) + s(Water_temp_c) + s(SAMPLE_DEPTH), data = FL_2002)
 
 summary(gam_model)
 plot(gam_model)
+
+#try * instead of addition and test any combo of relationships now.
+#gam(y ~ var1 * var2 * var3, data = your_data)
+FL_rm <- FL %>%
+  mutate(
+    SALINITY_ppt = na.omit(SALINITY_ppt),
+    Water_temp_c = na.omit(Water_temp_c),
+    WIND_SPEED_mph = na.omit(WIND_SPEED_mph)
+  )
+
+gam_model_multiplication <- gam(cells_per_l ~ SALINITY_ppt * Water_temp_c * WIND_SPEED_mph, data= )
+
+summary(gam_model_multiplication)
+plot(gam_model_multiplication)
 ```
 
 
