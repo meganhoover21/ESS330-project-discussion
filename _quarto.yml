@@ -8,6 +8,9 @@ manuscript:
 
 format:
   html:
+    self-contained: true
+    embed-resources: true  # Embeds all resources (including images) into the HTML
+
     comments:
       hypothesis: true
   docx: default
